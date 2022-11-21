@@ -1,6 +1,14 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 """Ez a fajlt dataclass-okat tartalmaz, amelyeket a foprogramban hasznalunk fel."""
+
+@dataclass(slots = True)
+class StoreHuffman:
+    path: str
+    heap: list
+    codes: dict
+    reverse_mapping: dict
+
 @dataclass(frozen = True, slots = True)
 class Symbol:
     """Symbols class, amely emoji unicode-jat tartalmazza. Azert dataclass, mert python 3.9-tol mar lehet ugy class tagokat inicializalni,

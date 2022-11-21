@@ -1,19 +1,20 @@
-from util import Colors, Symbol
+from util import Colors, Symbol, StoreHuffman
 import heapq, os
+from dataclasses import dataclass
 
 C = Colors()
 Fg = C.ForeGround()
 Sym = Symbol()
 
-class HuffmanCoding:
-    def __init__(self, path):
-        self.path = path
-        self.heap = []
-        self.codes = {}
-        self.reverse_mapping = {}
+class HuffmanCoding(StoreHuffman):
+    def __init__(self, path: str):
+        StoreHuffman.path = path
+        StoreHuffman.heap = []
+        StoreHuffman.codes = {}
+        StoreHuffman.reverse_mapping = {}
 
     class HeapNode:
-        def __init__(self, char, freq):
+        def __init__(self, char, freq: int):
             self.char = char
             self.freq = freq
             self.left = None
@@ -32,7 +33,7 @@ class HuffmanCoding:
             return self.freq == other.freq
 
     # Fuggvenyek a kodolashoz:
-    def make_frequency_dict(self, text: str) -> dict():
+    def __make_frequency_dict(self, text: str) -> dict():
         """Megszamoljuk, hogy az egyes karakterek hanyszor fordulnak elo.
 
         Args:
@@ -62,14 +63,14 @@ class HuffmanCoding:
         # Vegig iteralunk a gyakorisagokon. Letre hozzuk a bianris fat a betuk gyakorisaga alapjan.
         for key in frequency:
             node = self.HeapNode(key, frequency[key])
-            heapq.heappush(self.heap, node)
+            heapq.heappush(StoreHuffman.heap, node)
 
     def __merge_nodes(self) -> None:
         """Addig adjuk ossze a betuk gyakorisaganak szamat, amig az elemek szama nagyobb, mint egy a heap-ben.
         """
-        while(len(self.heap) > 1):
-            node1 = heapq.heappop(self.heap)
-            node2 = heapq.heappop(self.heap)
+        while(len(StoreHuffman.heap) > 1):
+            node1 = heapq.heappop(StoreHuffman.heap)
+            node2 = heapq.heappop(StoreHuffman.heap)
 
             # Osszeadjuk a ket legkisebb gyakorisagu betu gyakorisagat.
             merged = self.HeapNode(None, node1.freq + node2.freq)
@@ -79,7 +80,7 @@ class HuffmanCoding:
             merged.right = node2
 
             # Frissitjuk a binaris fat.
-            heapq.heappush(self.heap, merged)
+            heapq.heappush(StoreHuffman.heap, merged)
 
     def __make_codes_helper(self, root: HeapNode, current_code: str) -> None:
         # Ha ures a fank, akkor uresen visszaterunk.
@@ -89,8 +90,8 @@ class HuffmanCoding:
         # Amennyiben az adott betu kodolva van, akkor elmentjuk a binaris kodjat. A codes-nal a kulcs a betu,
         # a reverse_mapping eseteben a kulcs az adott betu binaris kodolasa.
         if(root.char != None):
-            self.codes[root.char] = current_code
-            self.reverse_mapping[current_code] = root.char
+            StoreHuffman.codes[root.char] = current_code
+            StoreHuffman.reverse_mapping[current_code] = root.char
             return None
 
         # Rekurziv hivassal a baloldali gyakorisagokat 0-val, a jobboldali gyakorisagokat 1-gyel kodoljuk.
@@ -101,7 +102,7 @@ class HuffmanCoding:
         """_summary_
         """
         # Kiszedjuk a gyakorisagi fat a root-ba. A root tartalmazza a gyakorisagi fat, melyet le tudunk bontani.
-        root = heapq.heappop(self.heap)
+        root = heapq.heappop(StoreHuffman.heap)
         current_code = str()
         self.__make_codes_helper(root, current_code)
 
@@ -117,7 +118,7 @@ class HuffmanCoding:
         """
         encoded_text = str()
         for character in text:
-            encoded_text += self.codes[character]
+            encoded_text += StoreHuffman.codes[character]
 
         if (len(encoded_text) < 10000):
             print(Sym._info, Fg._orange, "Szoveg kodoltan: ", Fg._blue + encoded_text, C._reset)
@@ -181,7 +182,7 @@ class HuffmanCoding:
             text = text.rstrip()
 
             # Gyakorisagi fa elokeszitese.
-            frequency = self.make_frequency_dict(text)
+            frequency = self.__make_frequency_dict(text)
 
             # Letre hozzuk a binaris fat a python heapq moduljaval. A Huffman-kod gyakorlatilag a betuk gyakorisaganak a binaris fajabol kodolt binaris stream.
             self.__make_heap(frequency)
@@ -202,7 +203,7 @@ class HuffmanCoding:
 
     """ Fuggvenyek a dekodolashoz: """
 
-    def _remove_padding(self, padded_encoded_text: str) -> str:
+    def __remove_padding(self, padded_encoded_text: str) -> str:
         """Kiszedjuk a padding biteket a bit streambol.
 
         Args:
@@ -221,7 +222,7 @@ class HuffmanCoding:
 
         return encoded_text
 
-    def _decode_text(self, encoded_text: str) -> str:
+    def __decode_text(self, encoded_text: str) -> str:
         """Visszaadja az eredeti uzenetet.
 
         Args:
@@ -235,12 +236,13 @@ class HuffmanCoding:
         # Visszakeressuk a binaris fa alapjan a karaktereket.
         for bit in encoded_text:
             current_code += bit
-            if(current_code in self.reverse_mapping):
-                character = self.reverse_mapping[current_code]
+            if(current_code in StoreHuffman.reverse_mapping):
+                character = StoreHuffman.reverse_mapping[current_code]
                 decoded_text += character
                 current_code = str()
 
-        print(Sym._info, Fg._orange, "Dekodolt szoveg: ", Fg._blue + decoded_text, C._reset)
+        if(len(decoded_text) < 10000):
+            print(Sym._info, Fg._orange, "Dekodolt szoveg: ", Fg._blue + decoded_text, C._reset)
         return decoded_text
 
     def _decrypt(self, input_path: str) -> str:
@@ -280,9 +282,9 @@ class HuffmanCoding:
                 byte = file.read(1)
 
             # Kiszedjuk a padding biteket.
-            encoded_text = self._remove_padding(bit_string)
+            encoded_text = self.__remove_padding(bit_string)
 
-            decompressed_text = self._decode_text(encoded_text)
+            decompressed_text = self.__decode_text(encoded_text)
 
             output.write(decompressed_text)
 
