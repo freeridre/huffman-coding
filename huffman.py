@@ -19,10 +19,11 @@ class HuffmanCoding:
             self.left = None
             self.right = None
 
-        # defining comparators less_than and equals
+        # LessThan implementalasa
         def __lt__(self, other):
             return self.freq < other.freq
 
+        # Eq implementalas
         def __eq__(self, other):
             if(other == None):
                 return False
@@ -31,7 +32,6 @@ class HuffmanCoding:
             return self.freq == other.freq
 
     # Fuggvenyek a kodolashoz:
-
     def make_frequency_dict(self, text: str) -> dict():
         """Megszamoljuk, hogy az egyes karakterek hanyszor fordulnak elo.
 
@@ -41,7 +41,7 @@ class HuffmanCoding:
         Returns:
             dict(): Konyvtarat ad vissza, amelynek kulcsa az aktualis betu, es az erteke a betu gyakorisaganak szama.
         """
-        
+
         # Konyvtar deklaralasa.
         frequency = dict()
 
@@ -81,7 +81,7 @@ class HuffmanCoding:
             # Frissitjuk a binaris fat.
             heapq.heappush(self.heap, merged)
 
-    def __make_codes_helper(self, root, current_code):
+    def __make_codes_helper(self, root: HeapNode, current_code: str) -> None:
         # Ha ures a fank, akkor uresen visszaterunk.
         if(root == None):
             return None
@@ -96,7 +96,6 @@ class HuffmanCoding:
         # Rekurziv hivassal a baloldali gyakorisagokat 0-val, a jobboldali gyakorisagokat 1-gyel kodoljuk.
         self.__make_codes_helper(root.left, current_code + "0")
         self.__make_codes_helper(root.right, current_code + "1")
-
 
     def __make_codes(self) -> None:
         """_summary_
@@ -203,7 +202,7 @@ class HuffmanCoding:
 
     """ Fuggvenyek a dekodolashoz: """
 
-    def remove_padding(self, padded_encoded_text: str) -> str:
+    def _remove_padding(self, padded_encoded_text: str) -> str:
         """Kiszedjuk a padding biteket a bit streambol.
 
         Args:
@@ -213,6 +212,8 @@ class HuffmanCoding:
             str: Padding nelkuli bit stream.
         """
         padded_info = padded_encoded_text[:8]
+
+        # Megszamoljuk a padding-ot.
         extra_padding = int(padded_info, 2)
 
         padded_encoded_text = padded_encoded_text[8:] 
@@ -220,9 +221,18 @@ class HuffmanCoding:
 
         return encoded_text
 
-    def decode_text(self, encoded_text):
-        current_code, decoded_text = str()
+    def _decode_text(self, encoded_text: str) -> str:
+        """Visszaadja az eredeti uzenetet.
 
+        Args:
+            encoded_text (str): Bit stream
+        Returns:
+            str: Visszafejtett uzenet.
+        """
+        current_code = str()
+        decoded_text = str()
+
+        # Visszakeressuk a binaris fa alapjan a karaktereket.
         for bit in encoded_text:
             current_code += bit
             if(current_code in self.reverse_mapping):
@@ -230,8 +240,8 @@ class HuffmanCoding:
                 decoded_text += character
                 current_code = str()
 
+        print(Sym._info, Fg._orange, "Dekodolt szoveg: ", Fg._blue + decoded_text, C._reset)
         return decoded_text
-
 
     def _decrypt(self, input_path: str) -> str:
         """Dekodoljuk a .bin fajlt.
@@ -253,19 +263,29 @@ class HuffmanCoding:
         with open(input_path, 'rb') as file, open(output_path, 'w') as output:
             bit_string = str()
 
+            # 1 byte-ot olvasunk ki a fajlbol.
             byte = file.read(1)
             while(len(byte) > 0):
+
+                # Levagjuk a nullat.
                 byte = ord(byte)
+
+                # Leirjuk binaris formaban a szamot
                 bits = bin(byte)[2:].rjust(8, '0')
+
+                # Letre hozzuk a bit stream-et.
                 bit_string += bits
+
+                # 1 byte-ot olvasunk ki a fajlbol.
                 byte = file.read(1)
 
-            encoded_text = self.remove_padding(bit_string)
+            # Kiszedjuk a padding biteket.
+            encoded_text = self._remove_padding(bit_string)
 
-            decompressed_text = self.decode_text(encoded_text)
-            
+            decompressed_text = self._decode_text(encoded_text)
+
             output.write(decompressed_text)
 
         print(Sym._check_box, Fg._green, "Dekodolva" + Sym._exclamation, C._reset)
-        return output_path
 
+        return output_path
