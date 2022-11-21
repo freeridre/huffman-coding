@@ -39,11 +39,11 @@ def main() -> None:
     h = HuffmanCoding(file_path)
 
     # Kodoljuk a szoveget.
-    output_path = h._titkosit()
+    output_path = h._encrypt()
     print(Sym._info, Fg._orange, "Kodolt fajl:", Fg._blue + output_path, C._reset)
 
     # Dekodoljuk a szoveget.
-    decom_path = h.decompress(output_path)
+    decom_path = h._decrypt(output_path)
     print(Sym._info, Fg._orange, "Dekodolt fajl: ", Fg._blue + decom_path, C._reset)
 
 # Innen kezdodik a programunk. Amennyiben a python interpreter megtalalja a main() fuggveny, akkor meghivja azt.

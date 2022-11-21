@@ -159,7 +159,7 @@ class HuffmanCoding:
         return b
 
 
-    def _titkosit(self) -> str:
+    def _encrypt(self) -> str:
         """Visszaadja a titkositott fajlt .bin kiterjesztesben.
 
         Returns:
@@ -170,7 +170,7 @@ class HuffmanCoding:
         filename, file_extension = os.path.splitext(self.path)
 
         # A kimeneti fajlt kiterjesztese .bin tipusu lesz.
-        output_path = filename + ".bin"
+        output_path = filename + "_kodolt" + ".bin"
 
         # Azert nyitjuk meg with-el a fajlokat, mert a with automatikusan be is zarja a fajlokatt, mitutan mar nem hasznaljuk Oket.
         # Az r az sima olvasas, az r+ olvasas, es iras is, a wb az binaris fajl irasat jelenti.
@@ -203,13 +203,20 @@ class HuffmanCoding:
 
     """ Fuggvenyek a dekodolashoz: """
 
+    def remove_padding(self, padded_encoded_text: str) -> str:
+        """Kiszedjuk a padding biteket a bit streambol.
 
-    def remove_padding(self, padded_encoded_text):
+        Args:
+            padded_encoded_text (str): Kodolt bit stream padded bitekkel.
+
+        Returns:
+            str: Padding nelkuli bit stream.
+        """
         padded_info = padded_encoded_text[:8]
         extra_padding = int(padded_info, 2)
 
         padded_encoded_text = padded_encoded_text[8:] 
-        encoded_text = padded_encoded_text[:-1*extra_padding]
+        encoded_text = padded_encoded_text[:-1 * extra_padding]
 
         return encoded_text
 
@@ -226,10 +233,23 @@ class HuffmanCoding:
         return decoded_text
 
 
-    def decompress(self, input_path):
-        filename, file_extension = os.path.splitext(self.path)
-        output_path = filename + "_decompressed" + ".txt"
+    def _decrypt(self, input_path: str) -> str:
+        """Dekodoljuk a .bin fajlt.
 
+        Args:
+            input_path (str): a dekodolni kivant fajl eleresi utja
+
+        Returns:
+            str: Visszaadjuk a dekodolt fajl eleresi utjat.
+        """
+
+        # Kiszedjuk a fajl nevet es a fajl kiterjeszteset.
+        filename, file_extension = os.path.splitext(self.path)
+
+        # Letrehozzuk a dekodolt fajlt
+        output_path = filename + "_dekodolt" + ".txt"
+
+        # Megnyitjuk a binaris fajlt "rb" modban, es a kimeneti fajlt is "w" modban.
         with open(input_path, 'rb') as file, open(output_path, 'w') as output:
             bit_string = str()
 
